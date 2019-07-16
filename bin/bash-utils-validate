@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+
+#: TITLE: bash-utils-validate
+#: DATE: 2019-04-23
+#: VERSION: 0.1.0
+#: AUTHOR: "Alex Y" <aleksandryackovlev@yandex.ru>
+#: DESCRIPTION: Functions for validation
+
+[[ $crcValidateLoaded ]] && return
+
+# DESCRIPTION: The entry point for the validation functions
+# USAGE: bash-utils-validate [COMMAND] [-r] [ARGUMENTS]
+bash-utils-validate() {
+  local commandToExec
+  local isReverse
+
+  isReverse=0
+  commandToExec="$1"
+  shift
+
+  OPTIND=1
+  opts=r
+
+  while getopts $opts opt; do
+    case $opt in
+      r)
+        isReverse=1
+        ;;
+      *)
+        echo "An unknown option in bash-utils-validate "
+        ;;
+    esac
+  done
+  shift $((OPTIND - 1))
+
+  case $commandToExec in
+    required)
+      if [[ -z $1 && $isReverse -eq 0 ]]; then
+        echo 'The field is required'
+      elif [[ -n $1 && $isReverse -eq 1 ]]; then
+        echo 'The field should be empty'
+      fi
+      ;;
+    alnum)
+      case $1 in
+        *[!0-9a-zA-Z_]*)
+          if [[ $isReverse -eq 0 ]]; then
+            echo 'Not an alnum was given'
+          fi
+        ;;
+        *)
+          if [[ $isReverse -eq 1 ]]; then
+            echo 'An alnum was given'
+          fi
+        ;;
+      esac
+      ;;
+    number)
+      case $1 in
+        *[!0-9]*)
+          if [[ $isReverse -eq 0 ]]; then
+            echo 'Not a number was given'
+          fi
+        ;;
+        *)
+          if [[ $isReverse -eq 1 ]]; then
+            echo 'A number was given'
+          fi
+        ;;
+      esac
+      ;;
+    file)
+      if [[ ! -f $1 && $isReverse -eq 0 ]]; then
+          echo 'File does not exist'
+      elif [[ -f $1 && $isReverse -eq 1 ]]; then
+          echo 'File already exists'
+      fi
+      ;;
+    directory)
+      if [[ ! -d $1 && $isReverse -eq 0 ]]; then
+          echo 'Directory does not exist'
+      elif [[ -d $1 && $isReverse -eq 1 ]]; then
+          echo 'Directory already exists'
+      fi
+      ;;
+    yesOrNo)
+      case $1 in
+        y|Y|n|N)
+          return
+          ;;
+        *)
+          echo "Not yes or no value was given"
+          ;;
+      esac
+      ;;
+    *)
+        echo "An unknown command bash-utils-validate ""$commandToExec"
+      ;;
+  esac
+}
+
+crcValidateLoaded=1

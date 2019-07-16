@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+#: TITLE: bash-utils-utils
+#: DATE: 2019-04-23
+#: VERSION: 0.1.0
+#: AUTHOR: "Alex Y" <aleksandryackovlev@yandex.ru>
+#: DESCRIPTION: Utils functions
+
+[[ $crcUtilsLoaded ]] && return
+
+source bash-utils-env
+source bash-utils-output
+source bash-utils-validate
+
+# DESCRIPTION: Print an error message and exit with the given status code
+# USAGE: die STATUS [MESSAGE]
+die() {
+  local error
+
+  error="$1"
+
+  if [[ -n "$(bash-utils-validate number "$error")" ]]; then
+    error="$(bash-utils-env generalErrorCode)"
+  fi
+
+  if [[ -n $2 ]]; then
+    bash-utils-output setFg red
+    printf "%s\n" "$2" >&2
+    bash-utils-output clearFormat
+  fi
+
+  exit "$error"
+}
+
+
+# DESCRIPTION: Returns the active editor
+# USAGE: getEditor
+getEditor() {
+  local currentEditor
+
+  if [[ $EDITOR ]]; then 
+    currentEditor="$EDITOR"
+  else
+    currentEditor=vi
+  fi
+
+  printf "%s" "$currentEditor"
+}
+
+# DESCRIPTION: The entry point for the utils functions
+# USAGE: bash-utils-utils [COMMAND] [ARGUMENTS]
+bash-utils-utils() {
+  local commandToExec
+  commandToExec="$1"
+  shift
+
+  case $commandToExec in
+    die)
+        die "$@"
+      ;;
+    getEditor)
+        getEditor "$@"
+      ;;
+    *)
+        die "$(bash-utils-env misuseErrorCode)" "An unknown command bash-utils-utils ""$commandToExec"
+      ;;
+  esac
+}
+
+crcUtilsLoaded=1

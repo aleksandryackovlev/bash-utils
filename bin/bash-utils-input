@@ -1,0 +1,297 @@
+#!/usr/bin/env bash
+
+#: TITLE: bash-utils-input
+#: DATE: 2019-04-23
+#: VERSION: 0.1.0
+#: AUTHOR: "Alex Y" <aleksandryackovlev@yandex.ru>
+#: DESCRIPTION: Functions for getting users' input
+
+[[ $crcInputLoaded ]] && return
+
+source bash-utils-env
+source bash-utils-utils
+source bash-utils-output
+source bash-utils-validate
+
+# DESCRIPTION: Shows a text prompt to a user
+# USAGE: textInput [OPTIONS]
+# OPTIONS: -p prompt - text for a prompt, default to "Input: "
+#          -d value - default value
+#          -v validator - a function or to validate an input
+#          -c - clear canvas on show, defalut to false
+textInput() {
+  local text
+  local prompt
+  local defaultPrompt
+  local defaultValue
+  local validator
+  local validationResult
+  local invalidPrompt
+  local opts
+
+  text=
+  prompt=
+  defaultPrompt='Input'
+  defaultValue=
+  validator=
+  clearCanvas=0
+  opts=p:d:v:c
+  OPTIND=1
+
+  while getopts $opts opt; do
+    case $opt in
+      p)
+        prompt="${OPTARG:-$defaultPrompt}"
+        ;;
+      d)
+        defaultValue="$OPTARG"
+        ;;
+      v)
+        validator="$OPTARG"
+        ;;
+      c)
+        clearCanvas=1
+        ;;
+      *)
+        bash-utils-utils die "$(bash-utils-env misuseErrorCode)" "An unknown options is set for a text input"
+        ;;
+    esac
+  done
+
+  shift $((OPTIND - 1))
+
+  if [[ -n $defaultValue ]]; then
+    prompt="${prompt} (default = ${defaultValue})"
+  fi
+
+  if [[ $clearCanvas -eq 1 ]]; then
+    clear
+  fi
+
+  if [[ -n $prompt ]]; then
+    prompt="$prompt: "
+    read -r -p "$prompt" text
+  else 
+    read -r text
+  fi
+
+  text="${text:-$defaultValue}"
+
+  if [[ -n $validator ]]; then
+
+    validationResult=$(bash-utils-validate "$validator" "$text" 2> /dev/null)
+
+    while [[ -n $validationResult ]]; do
+      invalidPrompt="$(bash-utils-output setFg red)$validationResult $(bash-utils-output clearFormat)$prompt"
+
+      if [[ $clearCanvas -eq 1 ]]; then
+        clear
+      fi
+
+      read -r -p "$invalidPrompt" text
+
+      text="${text:-$defaultValue}"
+      validationResult=$(bash-utils-validate "$validator" "$text")
+    done
+  fi
+
+  echo "$text"
+}
+
+# DESCRIPTION: Shows a select menu
+# USAGE: selectInput [OPTIONS]
+# OPTIONS: -p prompt - text for a prompt, default to "Select: "
+#          -C - clear canvas on show, defalut to true
+selectInput() {
+  local max
+  local activeItem
+  local menuNum
+  local description
+  local value
+  local k1
+  local k2
+  local k3
+  local opts
+  local defaultPrompt
+  local prompt
+
+  max=$#
+  input=
+  prompt=
+  activeItem=1
+  defaultPrompt='Select: '
+  clearCanvas=1
+  opts=p:C
+  OPTIND=1
+
+  while getopts $opts opt; do
+    case $opt in
+      p)
+        prompt="${OPTARG:-$defaultPrompt}"
+        ;;
+      C)
+        clearCanvas=0
+        ;;
+      *)
+        bash-utils-utils die "$(bash-utils-env misuseErrorCode)" "An unknown options is set for a select input"
+        ;;
+    esac
+  done
+
+  shift $((OPTIND - 1))
+
+  while true; do
+    if [[ $clearCanvas -eq 1 ]]; then
+      clear
+    fi
+
+    bash-utils-output setBold
+    printf "%s\n" "$prompt"
+    bash-utils-output clearFormat
+    bash-utils-output hideCursor
+
+    menuNum=1
+
+    for item; do
+      description="${item#*:}"
+
+      if [[ $activeItem -eq "$menuNum" ]]; then
+        bash-utils-output setFg green
+      else
+        bash-utils-output clearFormat
+      fi
+
+      printf "%${#max}d: %s\n" "$menuNum" "$description" >&1
+
+      menuNum=$(( menuNum + 1))
+    done
+
+    bash-utils-output clearFormat
+
+    read -sn1 value
+
+    if [[ $value = $'\e' ]]; then
+      read -sN1 -t 0.0001 k1
+      read -sN1 -t 0.0001 k2
+      read -sN1 -t 0.0001 k3
+
+      value=${value}${k1}${k2}${k3}
+    fi
+
+    case "$value" in
+      k|$'\e[A'|$'\e0A')  # cursor up: previous item
+        if [[ $activeItem -gt 1 ]]; then
+          activeItem=$(( activeItem -1 ))
+        fi
+        ;;
+
+      j|$'\e[B'|$'\e0B')  # cursor down: next item
+        if [[ $activeItem -lt $max ]]; then
+          activeItem=$(( activeItem + 1 ))
+        fi
+        ;;
+
+      $'\e[1~'|$'\e0H'|$'\e[H')  # home: first item
+        activeItem=1
+        ;;
+
+      $'\e[4~'|$'\e0F'|$'\e[F')  # end: last item
+        activeItem="$max"
+        ;;
+
+      q|'') # q, carriage return: quit
+        # TODO: Is there any other way to get the value from a subshell?
+        input="${!activeItem%%:*}"
+        bash-utils-output showCursor
+        return
+        ;;
+    esac 
+  done
+}
+
+# DESCRIPTION: Shows a radio menu
+# USAGE: radioInput [OPTIONS]
+# OPTIONS: -p prompt - text for a prompt, default to "Select (y/n): "
+#          -c - clear canvas on show, defalut to false
+radioInput() {
+  local text
+  local prompt
+  local defaultPrompt
+  local invalidPrompt
+  local opts
+
+  text=
+  prompt=
+  defaultPrompt='Select'
+  clearCanvas=0
+  opts=p:c
+  OPTIND=1
+
+  while getopts $opts opt; do
+    case $opt in
+      p)
+        prompt="${OPTARG:-$defaultPrompt}"
+        ;;
+      c)
+        clearCanvas=1
+        ;;
+      *)
+        bash-utils-utils die "$(bash-utils-env misuseErrorCode)" "An unknown options is set for a radio input"
+        ;;
+    esac
+  done
+
+  shift $((OPTIND - 1))
+
+  if [[ $clearCanvas -eq 1 ]]; then
+    clear
+  fi
+
+  if [[ -n $prompt ]]; then
+    prompt="$prompt (y/n): "
+    read -r -sn1 -p "$prompt" text
+  else 
+    read -r -sn1 text
+  fi
+
+  validationResult=$(bash-utils-validate yesOrNo -- "$text")
+
+  while [[ -n $validationResult ]]; do
+    invalidPrompt="$(bash-utils-output setFg red)$validationResult $(bash-utils-output clearFormat)$prompt"
+
+    if [[ $clearCanvas -eq 1 ]]; then
+      clear
+    fi
+
+    read -r -sn1 -p "$invalidPrompt" text
+
+    validationResult=$(bash-utils-validate yesOrNo -- "$text")
+  done
+
+  echo "$text"
+}
+
+# DESCRIPTION: The entry point for the input functions
+# USAGE: bash-utils-input [COMMAND] [ARGUMENTS]
+bash-utils-input() {
+  local commandToExec
+  commandToExec="$1"
+  shift
+
+  case $commandToExec in
+    text)
+        textInput "$@"
+      ;;
+    select)
+        selectInput "$@"
+      ;;
+    radio)
+        radioInput "$@"
+      ;;
+    *)
+        bash-utils-utils die "$(bash-utils-env misuseErrorCode)" "An unknown command bash-utils-input ""$commandToExec"
+      ;;
+  esac
+}
+
+crcInputLoaded=1

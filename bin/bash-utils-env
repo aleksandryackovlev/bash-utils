@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+#: TITLE: bash-utils-env
+#: DATE: 2019-07-16
+#: VERSION: 0.1.0
+#: AUTHOR: "Alex Y" <aleksandryackovlev@yandex.ru>
+#: DESCRIPTION: Environment variables
+
+[[ $bashUtilsEnvLoaded ]] && return
+
+## Script metadata
+export version=0.1.0
+export author="Alex Y"
+
+## Exit codes
+export successCode=0
+export generalErrorCode=1
+export misuseErrorCode=2
+export cannotExecuteErrorCode=126
+
+# DESCRIPTION: Returns the value of an env variable
+# USAGE: bash-utils-env ARGUMENT
+bash-utils-env() {
+  echo "${!1}"
+}
+
+bashUtilsEnvLoaded=1
