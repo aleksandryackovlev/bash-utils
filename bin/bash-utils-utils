@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 #: TITLE: bash-utils-utils
-#: DATE: 2019-04-23
+#: DATE: 2019-07-16
 #: VERSION: 0.1.0
 #: AUTHOR: "Alex Y" <aleksandryackovlev@yandex.ru>
 #: DESCRIPTION: Utils functions
 
-[[ $crcUtilsLoaded ]] && return
+[[ $bashUtilsUtilsLoaded ]] && return
 
 source bash-utils-env
 source bash-utils-output
@@ -67,4 +67,4 @@ bash-utils-utils() {
   esac
 }
 
-crcUtilsLoaded=1
+bashUtilsUtilsLoaded=1

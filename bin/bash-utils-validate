@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 #: TITLE: bash-utils-validate
-#: DATE: 2019-04-23
+#: DATE: 2019-07-16
 #: VERSION: 0.1.0
 #: AUTHOR: "Alex Y" <aleksandryackovlev@yandex.ru>
 #: DESCRIPTION: Functions for validation
 
-[[ $crcValidateLoaded ]] && return
+[[ $bashUtilsValidateLoaded ]] && return
 
 # DESCRIPTION: The entry point for the validation functions
 # USAGE: bash-utils-validate [COMMAND] [-r] [ARGUMENTS]
@@ -99,4 +99,4 @@ bash-utils-validate() {
   esac
 }
 
-crcValidateLoaded=1
+bashUtilsValidateLoaded=1
