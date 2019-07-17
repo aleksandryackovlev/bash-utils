@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+#: TITLE: bash-utils-help
+#: DATE: 2019-04-23
+#: VERSION: 0.1.0
+#: AUTHOR: "Alex Y" <aleksandryackovlev@yandex.ru>
+#: DESCRIPTION: Help information
+
+[[ $bashUtilsHelpLoaded ]] && return
+
+source bash-utils-env
+source bash-utils-utils
+
+# DESCRIPTION: Print the usage information
+# USAGE: usage
+showUsageInfo() {
+  printf "%s - %s\n" "$(bash-utils-env scriptName)" "$(bash-utils-env description)"
+  cat <<- HELP
+USAGE: "$(bash-utils-env usage)"
+
+See 'bash-utils help <COMMAND>' to read about a specific subcommand.
+HELP
+}
+
+# DESCRIPTION: Print the version information
+# USAGE: version
+showVersionInfo() {
+  printf "%s version %s\n" "$(bash-utils-env scriptName)" "$(bash-utils-env version)"
+  printf "by %s\n" "$(bash-utils-env author)"
+}
+
+# DESCRIPTION: The entry point for the bash-utils-help
+# USAGE: bash-utils-help [COMMAND]
+bash-utils-help() {
+  local commandToExec
+  commandToExec="$1"
+  shift
+
+  if [[ -z $commandToExec ]]; then
+    showUsageInfo
+    die "$(bash-utils-env successCode)"
+  fi
+
+  case $commandToExec in
+    version)
+        showVersionInfo
+      ;;
+    *)
+        die "$(bash-utils-env misuseErrorCode)" "An unknown command bash-utils-help ""$commandToExec"
+      ;;
+  esac
+}
+
+bashUtilsHelpLoaded=1
