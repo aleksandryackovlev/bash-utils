@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 #: TITLE: bash-utils-output
-#: DATE: 2019-04-23
+#: DATE: 2019-07-16
 #: VERSION: 0.1.0
 #: AUTHOR: "Alex Y" <aleksandryackovlev@yandex.ru>
 #: DESCRIPTION: Styling functions for output messages
 
-[[ $crcOutputLoaded ]] && return
+[[ $bashUtilsOutputLoaded ]] && return
 
 source bash-utils-env
 
@@ -148,4 +148,4 @@ bash-utils-output() {
 }
 
 
-crcOutputLoaded=1
+bashUtilsOutputLoaded=1
