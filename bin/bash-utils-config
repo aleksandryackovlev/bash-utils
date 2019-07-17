@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+
+#: TITLE: bash-utils-config
+#: DATE: 2019-07-16
+#: VERSION: 0.1.0
+#: AUTHOR: "Alex Y" <aleksandryackovlev@yandex.ru>
+#: DESCRIPTION: CRUD for configuration files
+
+[[ $bashUtilsConfigLoaded ]] && return
+
+source bash-utils-env
+source bash-utils-utils
+
+# DESCRIPTION: Sources the global config file if it exists
+# USAGE: readGlobalConfig
+readGlobalConfig() {
+  if [[ -f $(bash-utils-env globalConfigFile) ]]; then
+    source "$(bash-utils-env globalConfigFile)"
+  fi
+}
+
+# DESCRIPTION: Finds the local config file if it exists
+# USAGE: findLocalConfig
+findLocalConfig() {
+  local currentDir
+  local localConfigFile
+
+  currentDir="$PWD"
+  localConfigFile="$currentDir/$(bash-utils-env configFileName)"
+
+  while [[ ! $currentDir = "$HOME" && -n $currentDir && ! -f $localConfigFile ]]; do 
+    currentDir="${currentDir%/*}"
+    localConfigFile="$currentDir/$(bash-utils-env configFileName)"
+  done
+
+  if [[ -f $localConfigFile ]]; then
+    printf "%s" "$localConfigFile"
+  else
+    echo ''
+  fi
+}
+
+# DESCRIPTION: Sources the local config file if it exists
+# USAGE: readLocalConfig
+readLocalConfig() {
+  local localConfigFile
+
+  localConfigFile="$(findLocalConfig)"
+
+  if [[ -n $localConfigFile ]]; then
+    source "$localConfigFile"
+  fi
+}
+
+# DESCRIPTION: Sources the both config files if they exist
+# USAGE: readConfig
+readConfig() {
+  readGlobalConfig
+  readLocalConfig
+}
+
+# DESCRIPTION: Edits a local config file
+# USAGE: editConfigFile
+editConfigFile() {
+  local localConfigFile
+  local currentEditor
+
+  localConfigFile="$(findLocalConfig)"
+  currentEditor="$(bash-utils-utils getEditor)"
+
+  if [[ -z $localConfigFile ]]; then
+    bash-utils-utils die "$(bash-utils-env generalErrorCode)" "A local config file doesn't exist"
+  fi
+
+  "$currentEditor" "$localConfigFile"
+}
+
+# DESCRIPTION: Creates a local config file
+# USAGE: createConfigFile [DIRECTORY]
+createConfigFile() {
+  local directory
+  local localConfigFile
+  local currentEditor
+
+  directory="${1:-$PWD}"
+
+  if [[ ! -d $directory ]]; then
+    bash-utils-utils die "$(bash-utils-env generalErrorCode)" "A directory $directory doesn't exist"
+  fi
+
+  localConfigFile="$directory/$(bash-utils-env configFileName)"
+
+  if [[ -f $localConfigFile ]]; then
+    bash-utils-utils die "$(bash-utils-env generalErrorCode)" "A file $localConfigFile already exists"
+  fi
+
+  currentEditor="$(bash-utils-utils getEditor)"
+
+  printf "bashUtilsConfig=example" > "$localConfigFile"
+
+  "$currentEditor" "$localConfigFile"
+}
+
+# DESCRIPTION: Deletes a local config file
+# USAGE: deleteConfigFile
+deleteConfigFile() {
+  local localConfigFile
+
+  localConfigFile="$(findLocalConfig)"
+
+  if [[ -f $localConfigFile ]]; then
+    rm "$localConfigFile"
+  fi
+}
+
+# DESCRIPTION: The entry point for the bash-utils-config
+# USAGE: bash-utils-config COMMAND
+bash-utils-config() {
+  local commandToExec
+  commandToExec="$1"
+  shift
+
+  case $commandToExec in
+    create)
+        createConfigFile "$@"
+      ;;
+    read)
+        readConfig "$@"
+      ;;
+    edit)
+        editConfigFile "$@"
+      ;;
+    delete)
+        deleteConfigFile "$@"
+      ;;
+    *)
+        bash-utils-utils die "$(bash-utils-env misuseErrorCode)" "An unknown command bash-utils-config ""$commandToExec"
+      ;;
+  esac
+}
+
+bashUtilsConfigLoaded=1
