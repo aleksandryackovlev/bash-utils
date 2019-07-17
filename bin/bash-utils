@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+#: TITLE: bash-utils
+#: DATE: 2019-07-16
+#: VERSION: 0.1.0
+#: AUTHOR: "Alex Y" <aleksandryackovlev@yandex.ru>
+#: DESCRIPTION: Bash utils
+
+source bash-utils-env
+source bash-utils-config
+source bash-utils-input
+source bash-utils-output
+source bash-utils-help
+source bash-utils-utils
+source bash-utils-validate
+
+commandToExec=$1
+shift
+
+case $commandToExec in
+  env)
+      bash-utils-env "$@"
+    ;;
+  config)
+      bash-utils-config "$@"
+    ;;
+  input)
+      bash-utils-input "$@"
+    ;;
+  output)
+      bash-utils-output "$@"
+    ;;
+  help)
+      bash-utils-help "$@"
+    ;;
+  utils)
+      bash-utils-utils "$@"
+    ;;
+  validate)
+      bash-utils-validate "$@"
+    ;;
+  *)
+      bash-utils-utils die "$(bash-utils-env misuseErrorCode)" "An unknown command ""$commandToExec"
+    ;;
+esac
