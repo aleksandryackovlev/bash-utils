@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 #: TITLE: bash-utils-input
-#: DATE: 2019-04-23
+#: DATE: 2019-07-16
 #: VERSION: 0.1.0
 #: AUTHOR: "Alex Y" <aleksandryackovlev@yandex.ru>
 #: DESCRIPTION: Functions for getting users' input
 
-[[ $crcInputLoaded ]] && return
+[[ $bashUtilsInputLoaded ]] && return
 
 source bash-utils-env
 source bash-utils-utils
@@ -294,4 +294,4 @@ bash-utils-input() {
   esac
 }
 
-crcInputLoaded=1
+bashUtilsInputLoaded=1
